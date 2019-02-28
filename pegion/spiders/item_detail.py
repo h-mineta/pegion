@@ -39,7 +39,7 @@ class ItemDetailSpider(CrawlSpider):
         }
 
     def start_requests(self):
-        log_index = 1
+        log_index = 0
         self.connection = MySQLdb.connect(**self.mysql_args)
         self.connection.autocommit(False)
 
@@ -54,7 +54,7 @@ class ItemDetailSpider(CrawlSpider):
         self.connection.close()
         self.connection = None
 
-        while self.request_loop is True:
+        while self.request_loop is True and log_index > 0:
             yield scrapy.Request(
                 'https://rotool.gungho.jp/torihiki/log_detail.php?log={}'.format(log_index),
                 meta = {
