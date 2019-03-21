@@ -76,12 +76,14 @@ class MysqlPipeline(object):
     def process_item(self, item, spider):
         if spider.name in ['item_detail']:
             self.process_item_detail(item, spider)
+        elif spider.name in ['item_update']:
+            self.process_item_detail(item, spider)
 
         return item
 
     def process_item_detail(self, item, spider):
         sql_insert = '''
-            INSERT IGNORE INTO item_detail_tbl(
+            INSERT INTO item_detail_tbl(
                 id,
                 world,
                 `datetime`,
@@ -103,6 +105,9 @@ class MysqlPipeline(object):
                 %s,
                 %s
             )
+            ON DUPLICATE KEY UPDATE
+                cards=%s,
+                enchants=%s
             ;
         '''
 
@@ -117,7 +122,9 @@ class MysqlPipeline(object):
                     item['count'],
                     json.dumps(item['cards'], ensure_ascii=False),
                     json.dumps(item['enchants'], ensure_ascii=False),
-                    item['smelting']
+                    item['smelting'],
+                    json.dumps(item['cards'], ensure_ascii=False),
+                    json.dumps(item['enchants'], ensure_ascii=False)
                     ))
 
         except MySQLdb.Error as ex:
