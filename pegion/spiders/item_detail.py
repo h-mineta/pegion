@@ -14,6 +14,7 @@ from twisted.internet.error import TimeoutError
 from warnings import filterwarnings
 import MySQLdb
 import re
+import regex
 import scrapy
 
 class ItemDetailSpider(CrawlSpider):
