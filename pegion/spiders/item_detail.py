@@ -39,8 +39,9 @@ class ItemDetailSpider(CrawlSpider):
             'charset'    : 'utf8mb4'
         }
 
+        self.log_index = settings.get('ITEM_START_INDEX', 0)
+
     def start_requests(self):
-        log_index = 0
         self.connection = MySQLdb.connect(**self.mysql_args)
         self.connection.autocommit(False)
 
@@ -50,21 +51,22 @@ class ItemDetailSpider(CrawlSpider):
             '''
             cursor.execute(sql_select)
             for row in cursor:
-                log_index = row[0]
+                if row[0] is not None:
+                    self.log_index = row[0]
 
         self.connection.close()
         self.connection = None
 
-        while self.request_loop is True and log_index > 0:
+        while self.request_loop is True and self.log_index > 0:
             yield scrapy.Request(
-                'https://rotool.gungho.jp/torihiki/log_detail.php?log={}'.format(log_index),
+                'https://rotool.gungho.jp/torihiki/log_detail.php?log={}'.format(self.log_index),
                 meta = {
                     'dont_redirect': True
                 },
                 errback=self.errback_httpbin,
                 callback=self.parse_httpbin
             )
-            log_index+=1
+            self.log_index+=1
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -118,7 +120,21 @@ class ItemDetailSpider(CrawlSpider):
                         val = val.strip()
                         if val == 'なし':
                             break
-                        elif re.search('カード$', val) or regex.search(r'^魔神の[\P{Ascii}]+\d$', val):
+                        elif re.search('カード$', val) \
+                            or val == 'アリエス' \
+                            or val == 'ヴァルゴ' \
+                            or val == 'ヴァルゴの欠片' \
+                            or val == 'カプリコーン' \
+                            or val == 'キャンサー' \
+                            or val == 'サジタリウス' \
+                            or val == 'ジェミニ' \
+                            or val == 'スコーピオ' \
+                            or val == 'タウロス' \
+                            or val == 'パイシーズ' \
+                            or val == 'リーブラ' \
+                            or val == 'レオ' \
+                            or val == 'レオの欠片' \
+                            or regex.search(r'^魔神の[\P{Ascii}]+\d$', val):
                             item['cards'].append(val)
                         elif val != '':
                             item['enchants'].append(val)
