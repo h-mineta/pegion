@@ -15,7 +15,7 @@ SPIDER_MODULES = ['pegion.spiders']
 NEWSPIDER_MODULE = 'pegion.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-USER_AGENT = 'Pegion (h-mineta@0nyx.net)'
+USER_AGENT = 'Pegion'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
