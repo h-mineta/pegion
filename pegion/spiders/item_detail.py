@@ -113,13 +113,15 @@ class ItemDetailSpider(CrawlSpider):
                 item['smelting'] = int(value[0].replace(',',''))
             elif key[0] == 'カード':
                 for val in value:
-                    val = val.strip().replace('・','')
-                    if val == 'なし':
-                        break
-                    elif re.search('カード$', val) or regex.search(r'^魔神の[\P{Ascii}]+\d$', val):
-                        item['cards'].append(val)
-                    else:
-                        item['enchants'].append(val)
+                    value2 = val.split('・') #・で文字列結合している場合があるため、再度split
+                    for val in value2:
+                        val = val.strip()
+                        if val == 'なし':
+                            break
+                        elif re.search('カード$', val) or regex.search(r'^魔神の[\P{Ascii}]+\d$', val):
+                            item['cards'].append(val)
+                        elif val != '':
+                            item['enchants'].append(val)
 
         yield item
 
