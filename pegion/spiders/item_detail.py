@@ -114,7 +114,7 @@ class ItemDetailSpider(CrawlSpider):
                     val = val.strip().replace('・','')
                     if val == 'なし':
                         break
-                    elif re.search('カード$', val):
+                    elif re.search('カード$', val) or regex.search(r'^魔神の[\P{Ascii}]+\d$', val):
                         item['cards'].append(val)
                     else:
                         item['enchants'].append(val)
