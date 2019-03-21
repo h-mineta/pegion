@@ -76,9 +76,10 @@ class ItemDetailSpider(CrawlSpider):
             pass
 
         # HTMLエスケープされてない箇所を修正
-        html = response.body.decode('utf-8')
-        html = regex.sub(r'<([\P{Ascii}]+)>', r'&lt;\1&gt;', html)
-        response = response.replace(body=html)
+        html_data = response.body.decode('utf-8')
+        html_data = regex.sub(r'<([\P{Ascii}]+)>', r'&lt;\1&gt;', html_data)
+        html_data = html_data.replace('<Overclock>', '&lt;Overclock&gt;')
+        response = response.replace(body=html_data)
 
         world = response.xpath('//*[@id="tradebox"]/div[1]/div[1]/div[1]/p[1]/text()').get()
         if world is None or world == '':
