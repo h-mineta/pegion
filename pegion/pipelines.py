@@ -115,8 +115,8 @@ class MysqlPipeline(object):
                     item['item_name'],
                     item['cost'],
                     item['count'],
-                    json.dumps(item['cards'], ensure_ascii=False, indent=2),
-                    json.dumps(item['enchants'], ensure_ascii=False, indent=2),
+                    json.dumps(item['cards'], ensure_ascii=False),
+                    json.dumps(item['enchants'], ensure_ascii=False),
                     item['smelting']
                     ))
 
