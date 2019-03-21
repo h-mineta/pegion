@@ -96,3 +96,6 @@ MYSQL_USER       = 'pegion'
 MYSQL_PASSWORD   = 'pegionpw!'
 MYSQL_DATABASE   = 'pegion'
 MYSQL_UNIXSOCKET = '/var/run/mysqld/mysqld.sock'
+
+# 初期値: スクレイピングを行う2018/12/21最初のID
+ITEM_START_INDEX = 1425306
