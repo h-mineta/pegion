@@ -74,6 +74,11 @@ class ItemDetailSpider(CrawlSpider):
         if matches is None:
             pass
 
+        # HTMLエスケープされてない箇所を修正
+        html = response.body.decode('utf-8')
+        html = regex.sub(r'<([\P{Ascii}]+)>', r'&lt;\1&gt;', html)
+        response = response.replace(body=html)
+
         world = response.xpath('//*[@id="tradebox"]/div[1]/div[1]/div[1]/p[1]/text()').get()
         if world is None or world == '':
             self.logger.warning('Got failed response from {} (status:{})'.format(response.url, response.status))
