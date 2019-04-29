@@ -43,6 +43,7 @@ class MysqlPipeline(object):
                 `datetime` datetime NOT NULL,
                 `item_name` varchar(255) NOT NULL,
                 `cost` bigint(1) UNSIGNED NOT NULL,
+                `unit_cost` bigint(1) UNSIGNED NOT NULL,
                 `count` int(1) UNSIGNED NOT NULL,
                 `cards` json DEFAULT NULL,
                 `enchants` json DEFAULT NULL,
@@ -89,12 +90,14 @@ class MysqlPipeline(object):
                 `datetime`,
                 item_name,
                 cost,
+                unit_cost,
                 count,
                 cards,
                 enchants,
                 smelting
             )
             VALUES(
+                %s,
                 %s,
                 %s,
                 %s,
@@ -119,6 +122,7 @@ class MysqlPipeline(object):
                     item['datetime'],
                     item['item_name'],
                     item['cost'],
+                    int(item['cost'] / item['count']),
                     item['count'],
                     json.dumps(item['cards'], ensure_ascii=False),
                     json.dumps(item['enchants'], ensure_ascii=False),
