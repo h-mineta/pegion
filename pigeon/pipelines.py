@@ -15,9 +15,9 @@ class MysqlPipeline(object):
         self.mysql_args = {
             'host'       : settings.get('MYSQL_HOST', 'localhost'),
             'port'       : settings.get('MYSQL_PORT', 3306),
-            'user'       : settings.get('MYSQL_USER', 'pegion'),
-            'passwd'     : settings.get('MYSQL_PASSWORD', 'pegionpw!'),
-            'db'         : settings.get('MYSQL_DATABASE', 'pegion'),
+            'user'       : settings.get('MYSQL_USER', 'pigeon'),
+            'passwd'     : settings.get('MYSQL_PASSWORD', 'pigeonpw!'),
+            'db'         : settings.get('MYSQL_DATABASE', 'pigeon'),
             'unix_socket': settings.get('MYSQL_UNIXSOCKET', '/var/lib/mysql/mysql.sock'),
             'charset'    : 'utf8mb4'
         }

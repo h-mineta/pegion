@@ -1,4 +1,6 @@
 #!/bin/bash
 
-cd /opt/pegion
+cd /opt/pigeon-ro
+PATH=$PATH:~/.local/bin
+export PATH
 scrapy crawl item_detail --loglevel=INFO

@@ -5,7 +5,7 @@
 # This software is released under the MIT License.
 #
 
-from pegion.items import ItemDetail
+from pigeon.items import ItemDetail
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.spiders import CrawlSpider, Rule
@@ -17,8 +17,8 @@ import re
 import regex
 import scrapy
 
-class ItemDetailSpider(CrawlSpider):
-    name = 'item_detail'
+class ItemUpdateSpider(CrawlSpider):
+    name = 'item_update'
 
     allowed_domains = [
         'rotool.gungho.jp'
@@ -32,41 +32,52 @@ class ItemDetailSpider(CrawlSpider):
         self.mysql_args = {
             'host'       : settings.get('MYSQL_HOST', 'localhost'),
             'port'       : settings.get('MYSQL_PORT', 3306),
-            'user'       : settings.get('MYSQL_USER', 'pegion'),
-            'passwd'     : settings.get('MYSQL_PASSWORD', 'pegionpw!'),
-            'db'         : settings.get('MYSQL_DATABASE', 'pegion'),
+            'user'       : settings.get('MYSQL_USER', 'pigeon'),
+            'passwd'     : settings.get('MYSQL_PASSWORD', 'pigeonpw!'),
+            'db'         : settings.get('MYSQL_DATABASE', 'pigeon'),
             'unix_socket': settings.get('MYSQL_UNIXSOCKET', '/var/lib/mysql/mysql.sock'),
             'charset'    : 'utf8mb4'
         }
 
-        self.log_index = settings.get('ITEM_START_INDEX', 0)
-
     def start_requests(self):
+        log_index = 0
         self.connection = MySQLdb.connect(**self.mysql_args)
         self.connection.autocommit(False)
 
         with self.connection.cursor() as cursor:
             sql_select = '''
-                SELECT MAX(id)+1 AS next FROM `item_detail_tbl`;
+                SELECT *
+                FROM item_detail_tbl
+                WHERE enchants LIKE '%"魔神の%'
+                OR enchants LIKE '%""%'
+                OR enchants LIKE '%"アリエス"%'
+                OR enchants LIKE '%"カプリコーン"%'
+                OR enchants LIKE '%"キャンサー"%'
+                OR enchants LIKE '%"サジタリウス"%'
+                OR enchants LIKE '%"ジェミニ"%'
+                OR enchants LIKE '%"スコーピオ"%'
+                OR enchants LIKE '%"タウロス"%'
+                OR enchants LIKE '%"パイシーズ"%'
+                OR enchants LIKE '%"リーブラ"%'
+                OR enchants LIKE '%"レオ"%'
+                OR enchants LIKE '%"レオの欠片"%'
+                ORDER BY id ASC;
             '''
             cursor.execute(sql_select)
             for row in cursor:
-                if row[0] is not None:
-                    self.log_index = row[0]
+                log_index = row[0]
+
+                yield scrapy.Request(
+                    'https://rotool.gungho.jp/torihiki/log_detail.php?log={}'.format(log_index),
+                    meta = {
+                        'dont_redirect': True
+                    },
+                    errback=self.errback_httpbin,
+                    callback=self.parse_httpbin
+                )
 
         self.connection.close()
         self.connection = None
-
-        while self.request_loop is True and self.log_index > 0:
-            yield scrapy.Request(
-                'https://rotool.gungho.jp/torihiki/log_detail.php?log={}'.format(self.log_index),
-                meta = {
-                    'dont_redirect': True
-                },
-                errback=self.errback_httpbin,
-                callback=self.parse_httpbin
-            )
-            self.log_index+=1
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -122,8 +133,6 @@ class ItemDetailSpider(CrawlSpider):
                             break
                         elif re.search('カード$', val) \
                             or val == 'アリエス' \
-                            or val == 'ヴァルゴ' \
-                            or val == 'ヴァルゴの欠片' \
                             or val == 'カプリコーン' \
                             or val == 'キャンサー' \
                             or val == 'サジタリウス' \

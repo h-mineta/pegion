@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Scrapy settings for pegion project
+# Scrapy settings for pigeon project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -9,13 +9,13 @@
 #     https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
-BOT_NAME = 'pegion'
+BOT_NAME = 'pigeon'
 
-SPIDER_MODULES = ['pegion.spiders']
-NEWSPIDER_MODULE = 'pegion.spiders'
+SPIDER_MODULES = ['pigeon.spiders']
+NEWSPIDER_MODULE = 'pigeon.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-USER_AGENT = 'Pegion'
+USER_AGENT = 'Pigeon (h-mineta@0nyx.net)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
@@ -47,13 +47,13 @@ DEFAULT_REQUEST_HEADERS = {
 # Enable or disable spider middlewares
 # See https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
-#    'pegion.middlewares.pegionSpiderMiddleware': 543,
+#    'pigeon.middlewares.pigeonSpiderMiddleware': 543,
 #}
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {
-#    'pegion.middlewares.pegionDownloaderMiddleware': 543,
+#    'pigeon.middlewares.pigeonDownloaderMiddleware': 543,
 #}
 
 # Enable or disable extensions
@@ -65,7 +65,7 @@ DEFAULT_REQUEST_HEADERS = {
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'pegion.pipelines.MysqlPipeline': 100,
+    'pigeon.pipelines.MysqlPipeline': 100,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -90,11 +90,11 @@ HTTPCACHE_ENABLED = False
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 # MySQL settings
-MYSQL_HOST       = 'localhost'
+MYSQL_HOST       = 'eins.0nyx.net'
 MYSQL_PORT       = 3306
-MYSQL_USER       = 'pegion'
-MYSQL_PASSWORD   = 'pegionpw!'
-MYSQL_DATABASE   = 'pegion'
+MYSQL_USER       = 'pigeon'
+MYSQL_PASSWORD   = 'sNOTbideZcFlXPAn'
+MYSQL_DATABASE   = 'pigeon'
 MYSQL_UNIXSOCKET = '/var/run/mysqld/mysqld.sock'
 
 # 初期値: スクレイピングを行う2018/12/21最初のID
