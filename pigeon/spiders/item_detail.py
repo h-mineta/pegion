@@ -115,29 +115,33 @@ class ItemDetailSpider(CrawlSpider):
                 item['smelting'] = int(value[0].replace(',',''))
             elif key[0] == 'カード':
                 for val in value:
-                    value2 = val.split('・') #・で文字列結合している場合があるため、再度split
-                    for val in value2:
-                        val = val.strip()
-                        if val == 'なし':
-                            break
-                        elif re.search('カード$', val) \
-                            or val == 'アリエス' \
-                            or val == 'ヴァルゴ' \
-                            or val == 'ヴァルゴの欠片' \
-                            or val == 'カプリコーン' \
-                            or val == 'キャンサー' \
-                            or val == 'サジタリウス' \
-                            or val == 'ジェミニ' \
-                            or val == 'スコーピオ' \
-                            or val == 'タウロス' \
-                            or val == 'パイシーズ' \
-                            or val == 'リーブラ' \
-                            or val == 'レオ' \
-                            or val == 'レオの欠片' \
-                            or regex.search(r'^魔神の[\P{Ascii}]+\d$', val):
-                            item['cards'].append(val)
-                        elif val != '':
-                            item['enchants'].append(val)
+                    val = val.strip()
+                    val = re.sub(r'^・', '', val) # "・"を消す
+
+                    # 特殊処理
+                    if re.match(r'.*カード・', val): # カード・xxx の条件を探す
+                        result = re.split(r'カード・', val)
+                        item['cards'].append("{}{}".format(result[0],"カード"))
+                        item['enchants'].append(result[1])
+
+                    elif val == 'なし':
+                        break
+                    elif re.search('カード$', val) \
+                        or val == 'アリエス' \
+                        or val == 'カプリコーン' \
+                        or val == 'キャンサー' \
+                        or val == 'サジタリウス' \
+                        or val == 'ジェミニ' \
+                        or val == 'スコーピオ' \
+                        or val == 'タウロス' \
+                        or val == 'パイシーズ' \
+                        or val == 'リーブラ' \
+                        or val == 'レオ' \
+                        or val == 'レオの欠片' \
+                        or regex.search(r'^魔神の[\P{Ascii}]+\d$', val):
+                        item['cards'].append(val)
+                    elif val != '':
+                        item['enchants'].append(val)
 
         yield item
 
