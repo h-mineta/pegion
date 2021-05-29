@@ -138,7 +138,8 @@ class ItemDetailSpider(CrawlSpider):
                         or val == 'リーブラ' \
                         or val == 'レオ' \
                         or val == 'レオの欠片' \
-                        or regex.search(r'^魔神の[\P{Ascii}]+\d$', val):
+                        or regex.search(r'^魔神の[\P{Ascii}]+\d$', val) \
+                        or regex.search(r'^.*カード\(逆位置\)$', val):
                         item['cards'].append(val)
                     elif val != '':
                         item['enchants'].append(val)
