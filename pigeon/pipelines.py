@@ -47,6 +47,7 @@ class MysqlPipeline(object):
                 `count` int(1) UNSIGNED NOT NULL,
                 `cards` json DEFAULT NULL,
                 `enchants` json DEFAULT NULL,
+                `options` json DEFAULT NULL,
                 `smelting` int(1) UNSIGNED DEFAULT NULL,
                 `update_time` timestamp NOT NULL DEFAULT current_timestamp(),
                 PRIMARY KEY (`id`),
@@ -94,9 +95,11 @@ class MysqlPipeline(object):
                 count,
                 cards,
                 enchants,
+                options,
                 smelting
             )
             VALUES(
+                %s,
                 %s,
                 %s,
                 %s,
@@ -110,7 +113,8 @@ class MysqlPipeline(object):
             )
             ON DUPLICATE KEY UPDATE
                 cards=%s,
-                enchants=%s
+                enchants=%s,
+                options=%s
             ;
         '''
 
@@ -126,9 +130,11 @@ class MysqlPipeline(object):
                     item['count'],
                     json.dumps(item['cards'], ensure_ascii=False),
                     json.dumps(item['enchants'], ensure_ascii=False),
+                    json.dumps(item['options'], ensure_ascii=False),
                     item['smelting'],
                     json.dumps(item['cards'], ensure_ascii=False),
-                    json.dumps(item['enchants'], ensure_ascii=False)
+                    json.dumps(item['enchants'], ensure_ascii=False),
+                    json.dumps(item['options'], ensure_ascii=False)
                     ))
 
         except MySQLdb.Error as ex:

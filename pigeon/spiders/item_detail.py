@@ -5,17 +5,18 @@
 # This software is released under the MIT License.
 #
 
+import re
+from warnings import filterwarnings
+
+import MySQLdb
+import scrapy
+import regex
 from pigeon.items import ItemDetail
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.spiders import CrawlSpider, Rule
-from twisted.internet.error import DNSLookupError
-from twisted.internet.error import TimeoutError
-from warnings import filterwarnings
-import MySQLdb
-import re
-import regex
-import scrapy
+from twisted.internet.error import DNSLookupError, TimeoutError
+
 
 class ItemDetailSpider(CrawlSpider):
     name = 'item_detail'
@@ -100,6 +101,7 @@ class ItemDetailSpider(CrawlSpider):
         item['count']     = 0
         item['cards']     = []
         item['enchants']  = []
+        item['options']   = []
         item['smelting']  = None
 
         for list_tr in response.xpath('//*[@id="tradebox"]/div[2]/table[@class="datatable"]/tr'):
@@ -114,37 +116,73 @@ class ItemDetailSpider(CrawlSpider):
             elif key[0] == '精錬値':
                 item['smelting'] = int(value[0].replace(',',''))
             elif key[0] == 'カード':
-                for val in value:
-                    val = val.strip()
-                    val = re.sub(r'^・', '', val) # "・"を消す
+                for data in value:
+                    data = data.strip()
 
-                    # 特殊処理
-                    if re.match(r'.*カード・', val): # カード・xxx の条件を探す
-                        result = re.split(r'カード・', val)
-                        item['cards'].append("{}{}".format(result[0],"カード"))
-                        item['enchants'].append(result[1])
+                    data_list: list = data.split("・")
 
-                    elif val == 'なし':
-                        break
-                    elif re.search('カード$', val) \
-                        or val == 'アリエス' \
-                        or val == 'カプリコーン' \
-                        or val == 'キャンサー' \
-                        or val == 'サジタリウス' \
-                        or val == 'ジェミニ' \
-                        or val == 'スコーピオ' \
-                        or val == 'タウロス' \
-                        or val == 'パイシーズ' \
-                        or val == 'リーブラ' \
-                        or val == 'レオ' \
-                        or val == 'レオの欠片' \
-                        or regex.search(r'^魔神の[\P{Ascii}]+\d$', val) \
-                        or regex.search(r'^.*カード\(逆位置\)$', val):
-                        item['cards'].append(val)
-                    elif val != '':
-                        item['enchants'].append(val)
+                    for value2 in data_list:
+                        if value2 == "" or value2 == "なし":
+                            continue
+
+                        data_type: str = self.adjudication_data(item["item_name"], value2)
+
+                        if data_type == "card":
+                            item['cards'].append(value2)
+                        elif data_type == "enchant":
+                            item['enchants'].append(value2)
+                        elif data_type == "option":
+                            item['options'].append(value2)
 
         yield item
+
+    def adjudication_data(self, name: str, value: str):
+        if re.search('カード$', value) \
+            or value == 'アリエス' \
+            or value == 'カプリコーン' \
+            or value == 'キャンサー' \
+            or value == 'サジタリウス' \
+            or value == 'ジェミニ' \
+            or value == 'スコーピオ' \
+            or value == 'タウロス' \
+            or value == 'パイシーズ' \
+            or value == 'リーブラ' \
+            or value == 'レオ' \
+            or value == 'レオの欠片' \
+            or regex.search(r'^魔神の[\P{Ascii}]+\d$', value) \
+            or re.search(r'^.*カード\(逆位置\)$', value):
+            return "card"
+
+        elif re.search(r"^アビス", name) \
+            or re.search(r"^ディーヴァ", name) \
+            or re.search(r"^ニーヴ", name) \
+            or re.search(r"^ラーヴァ", name) \
+                and (re.search(r"^物理攻撃時、", value) \
+                or re.search(r"^魔法攻撃時、", value) \
+                or re.search(r"^.属性攻撃で受ける", value) \
+                or re.search(r"^武器に.属性を付与する$", value) \
+                or re.search(r"^ボスモンスターから受けるダメージ", value) \
+                or re.search(r"^Atk \+ \d+$", value) \
+                or re.search(r"^Def \+ \d+$", value) \
+                or re.search(r"^Matk \+ \d+$", value) \
+                or re.search(r"^Mdef \+ \d+$", value) \
+                or re.search(r"^Str \+ \d+$", value) \
+                or re.search(r"^Agi \+ \d+$", value) \
+                or re.search(r"^Vit \+ \d+$", value) \
+                or re.search(r"^Int \+ \d+$", value) \
+                or re.search(r"^Dex \+ \d+$", value) \
+                or re.search(r"^Luk \+ \d+$", value) \
+                or re.search(r"^Hit \+ \d+$", value) \
+                or re.search(r"^Flee \+ \d+$", value) \
+                or re.search(r"^MaxSP \+ \d+", value) \
+                or re.search(r"^MaxHP \+ \d+", value) \
+                or re.search(r"^スキルディレイ \- \d+", value) \
+                ):
+            return "option"
+
+        else:
+            return "enchant"
+
 
     def errback_httpbin(self, failure):
         # log all failures
