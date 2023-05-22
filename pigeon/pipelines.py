@@ -48,7 +48,7 @@ class MysqlPipeline(object):
                 `cards` json DEFAULT NULL,
                 `enchants` json DEFAULT NULL,
                 `options` json DEFAULT NULL,
-                `smelting` int(1) UNSIGNED DEFAULT NULL,
+                `refining` int(1) UNSIGNED DEFAULT NULL,
                 `update_time` timestamp NOT NULL DEFAULT current_timestamp(),
                 PRIMARY KEY (`id`),
                 KEY `datetime` (`datetime`),
@@ -65,12 +65,12 @@ class MysqlPipeline(object):
 
     def open_spider(self, spider):
         self.connection = MySQLdb.connect(**self.mysql_args)
-        self.connection.autocommit(False)
+        self.connection.autocommit(True)
 
     def close_spider(self, spider):
         if self.connection:
             try:
-                self.connection.commit()
+                #self.connection.commit()
                 self.connection.close()
             except MySQLdb.Error as ex:
                 self.logger.warning(ex)
@@ -96,7 +96,7 @@ class MysqlPipeline(object):
                 cards,
                 enchants,
                 options,
-                smelting
+                refining
             )
             VALUES(
                 %s,
@@ -131,12 +131,12 @@ class MysqlPipeline(object):
                     json.dumps(item['cards'], ensure_ascii=False),
                     json.dumps(item['enchants'], ensure_ascii=False),
                     json.dumps(item['options'], ensure_ascii=False),
-                    item['smelting'],
+                    item['refining'],
                     json.dumps(item['cards'], ensure_ascii=False),
                     json.dumps(item['enchants'], ensure_ascii=False),
                     json.dumps(item['options'], ensure_ascii=False)
                     ))
 
         except MySQLdb.Error as ex:
-            self.connection.rollback()
+            #self.connection.rollback()
             self.logger.error(ex)

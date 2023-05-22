@@ -17,4 +17,4 @@ class ItemDetail(Item):
     cards     = Field()
     enchants  = Field()
     options   = Field()
-    smelting  = Field()
+    refining  = Field()

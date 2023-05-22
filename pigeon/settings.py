@@ -15,13 +15,17 @@ SPIDER_MODULES = ['pigeon.spiders']
 NEWSPIDER_MODULE = 'pigeon.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-USER_AGENT = 'Pigeon (h-mineta@0nyx.net)'
+USER_AGENT = 'Pigeon'
+
+DOWNLOAD_TIMEOUT = 5
+RETRY_ENABLED = False
+REDIRECT_ENABLED = False
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 16
+CONCURRENT_REQUESTS = 64
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -29,11 +33,11 @@ CONCURRENT_REQUESTS = 16
 DOWNLOAD_DELAY = 0
 
 # The download delay setting will honor only one of:
-CONCURRENT_REQUESTS_PER_DOMAIN = 8
-CONCURRENT_REQUESTS_PER_IP = 8
+CONCURRENT_REQUESTS_PER_DOMAIN = 64
+CONCURRENT_REQUESTS_PER_IP = 64
 
 # Disable cookies (enabled by default)
-COOKIES_ENABLED = True
+COOKIES_ENABLED = False
 
 # Disable Telnet Console (enabled by default)
 TELNETCONSOLE_ENABLED = False
@@ -90,12 +94,13 @@ HTTPCACHE_ENABLED = False
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 # MySQL settings
-MYSQL_HOST       = 'eins.0nyx.net'
+MYSQL_HOST       = 'localhost'
 MYSQL_PORT       = 3306
 MYSQL_USER       = 'pigeon'
 MYSQL_PASSWORD   = 'sNOTbideZcFlXPAn'
 MYSQL_DATABASE   = 'pigeon'
-MYSQL_UNIXSOCKET = '/var/run/mysqld/mysqld.sock'
+MYSQL_UNIXSOCKET = '/var/lib/mysql/mysql.sock'
 
 # 初期値: スクレイピングを行う2018/12/21最初のID
-ITEM_START_INDEX = 1425306
+ITEM_START_INDEX = 13339608
+

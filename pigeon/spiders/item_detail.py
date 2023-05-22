@@ -102,7 +102,7 @@ class ItemDetailSpider(CrawlSpider):
         item['cards']     = []
         item['enchants']  = []
         item['options']   = []
-        item['smelting']  = None
+        item['refining']  = None
 
         for list_tr in response.xpath('//*[@id="tradebox"]/div[2]/table[@class="datatable"]/tr'):
             key = list_tr.xpath('th[1]/text()').extract()
@@ -114,10 +114,18 @@ class ItemDetailSpider(CrawlSpider):
             elif key[0] == '個数':
                 item['count'] = int(value[0].replace(',',''))
             elif key[0] == '精錬値':
-                item['smelting'] = int(value[0].replace(',',''))
+                item['refining'] = int(value[0].replace(',',''))
             elif key[0] == 'カード':
                 for data in value:
                     data = data.strip()
+
+                    data = re.sub(r'^・', '', data) # "・"を消す
+                    # 特殊処理(・の文字が入ったカード用処理)
+                    if re.match(r"^.+カード・", data):
+                        result = re.split(r"カード・", data)
+                        card_name = "{}{}".format(result[0],"カード")
+                        item['cards'].append(card_name)
+                        data = re.sub(card_name, '', data)
 
                     data_list: list = data.split("・")
 
@@ -153,31 +161,50 @@ class ItemDetailSpider(CrawlSpider):
             or re.search(r'^.*カード\(逆位置\)$', value):
             return "card"
 
-        elif re.search(r"^アビス", name) \
-            or re.search(r"^ディーヴァ", name) \
-            or re.search(r"^ニーヴ", name) \
-            or re.search(r"^ラーヴァ", name) \
-                and (re.search(r"^物理攻撃時、", value) \
-                or re.search(r"^魔法攻撃時、", value) \
-                or re.search(r"^.属性攻撃で受ける", value) \
-                or re.search(r"^武器に.属性を付与する$", value) \
-                or re.search(r"^ボスモンスターから受けるダメージ", value) \
-                or re.search(r"^Atk \+ \d+$", value) \
-                or re.search(r"^Def \+ \d+$", value) \
-                or re.search(r"^Matk \+ \d+$", value) \
-                or re.search(r"^Mdef \+ \d+$", value) \
-                or re.search(r"^Str \+ \d+$", value) \
-                or re.search(r"^Agi \+ \d+$", value) \
-                or re.search(r"^Vit \+ \d+$", value) \
-                or re.search(r"^Int \+ \d+$", value) \
-                or re.search(r"^Dex \+ \d+$", value) \
-                or re.search(r"^Luk \+ \d+$", value) \
-                or re.search(r"^Hit \+ \d+$", value) \
-                or re.search(r"^Flee \+ \d+$", value) \
-                or re.search(r"^MaxSP \+ \d+", value) \
-                or re.search(r"^MaxHP \+ \d+", value) \
-                or re.search(r"^スキルディレイ \- \d+", value) \
-                ):
+        elif re.search(r"^物理攻撃時", value) \
+            or re.search(r"^魔法攻撃時", value) \
+            or re.search(r"^.+属性攻撃で受ける", value) \
+            or re.search(r"^.+形モンスターの", value) \
+            or re.search(r"^.+形モンスターから受ける", value) \
+            or re.search(r"^.+性モンスターの", value) \
+            or re.search(r"^.+性モンスターから受ける", value) \
+            or re.search(r"^.型モンスターの", value) \
+            or re.search(r"^.型モンスターから受ける", value) \
+            or re.search(r"^人間形プレイヤー", value) \
+            or re.search(r"^ドラム形プレイヤー", value) \
+            or re.search(r"^武器に.属性を付与する$", value) \
+            or re.search(r"^ボスモンスターから受ける", value) \
+            or re.search(r"^一般モンスターから受ける", value) \
+            or re.search(r"^ボスモンスターの", value) \
+            or re.search(r"^一般モンスターの", value) \
+            or re.search(r"^遠距離物理耐性 \+ \d+$", value) \
+            or re.search(r"^遠距離物理攻撃で与えるダメージ", value) \
+            or re.search(r"^遠距離物理攻撃で受けるダメージ", value) \
+            or re.search(r"^鎧に.属性を付与する$", value) \
+            or re.search(r"^ヒール系スキル", value) \
+            or re.search(r"^スキル使用時の消費SP", value) \
+            or re.search(r"^クリティカル攻撃で与えるダメージ", value) \
+            or re.search(r"^全てのモンスターに対し、サイズによる武器ダメージのペナルティが発生しない", value) \
+            or re.search(r"^Atk \+ \d+$", value) \
+            or re.search(r"^Def \+ \d+$", value) \
+            or re.search(r"^Matk \+ \d+$", value) \
+            or re.search(r"^Mdef \+ \d+$", value) \
+            or re.search(r"^Str \+ \d{2}$", value) \
+            or re.search(r"^Agi \+ \d{2}$", value) \
+            or re.search(r"^Vit \+ \d{2}$", value) \
+            or re.search(r"^Int \+ \d{2}$", value) \
+            or re.search(r"^Dex \+ \d{2}$", value) \
+            or re.search(r"^Luk \+ \d{2}$", value) \
+            or re.search(r"^Hit \+ \d{2}$", value) \
+            or re.search(r"^Flee \+ \d{2}$", value) \
+            or re.search(r"^MaxSP \+ \d+$", value) \
+            or re.search(r"^MaxHP \+ \d+$", value) \
+            or re.search(r"^Cri \+ \d{2}$", value) \
+            or re.search(r"^HP \+ \d＋", value) \
+            or re.search(r"^HP自然回復量 \- \d{2}%", value) \
+            or re.search(r"^SP自然回復量 \- \d{2}%", value) \
+            or re.search(r"^詠唱時間 \- \d+", value):
+            #or re.search(r"^スキルディレイ \- \d{2}%", value):
             return "option"
 
         else:
