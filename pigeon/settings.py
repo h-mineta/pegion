@@ -17,7 +17,7 @@ NEWSPIDER_MODULE = 'pigeon.spiders'
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = 'Pigeon'
 
-DOWNLOAD_TIMEOUT = 5
+DOWNLOAD_TIMEOUT = 10
 RETRY_ENABLED = False
 REDIRECT_ENABLED = False
 
@@ -100,7 +100,3 @@ MYSQL_USER       = 'pigeon'
 MYSQL_PASSWORD   = 'sNOTbideZcFlXPAn'
 MYSQL_DATABASE   = 'pigeon'
 MYSQL_UNIXSOCKET = '/var/lib/mysql/mysql.sock'
-
-# 初期値: スクレイピングを行う2018/12/21最初のID
-ITEM_START_INDEX = 13339608
-

@@ -7,14 +7,13 @@
 
 from scrapy import Item, Field
 
-class ItemDetail(Item):
-    id        = Field()
-    world     = Field()
-    datetime  = Field()
-    item_name = Field()
-    cost      = Field()
-    count     = Field()
-    cards     = Field()
-    enchants  = Field()
-    options   = Field()
-    refining  = Field()
+class ItemTrade(Item):
+    item_name      = Field()
+    log_date       = Field()
+    world          = Field()
+    map_name       = Field()
+    price          = Field()
+    item_count     = Field()
+    cards          = Field()
+    random_options = Field()
+    refining_level = Field()

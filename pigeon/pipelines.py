@@ -37,24 +37,22 @@ class MysqlPipeline(object):
         with self.connection.cursor() as cursor:
 
             sql_create_tbl = '''
-                CREATE TABLE IF NOT EXISTS `item_detail_tbl` (
-                `id` bigint(1) UNSIGNED NOT NULL,
-                `world` varchar(16) NOT NULL,
-                `datetime` datetime NOT NULL,
+                CREATE TABLE IF NOT EXISTS `item_trade_tbl` (
+                `id` bigint(1) UNSIGNED NOT NULL AUTO_INCREMENT,
                 `item_name` varchar(255) NOT NULL,
-                `cost` bigint(1) UNSIGNED NOT NULL,
-                `unit_cost` bigint(1) UNSIGNED NOT NULL,
-                `count` int(1) UNSIGNED NOT NULL,
+                `log_date` datetime NOT NULL,
+                `world` varchar(16) NOT NULL,
+                `map_name` text DEFAULT NULL,
+                `price` bigint(1) UNSIGNED NOT NULL,
+                `unit_price` bigint(1) UNSIGNED NOT NULL,
+                `item_count` int(1) UNSIGNED NOT NULL,
                 `cards` json DEFAULT NULL,
-                `enchants` json DEFAULT NULL,
-                `options` json DEFAULT NULL,
-                `refining` int(1) UNSIGNED DEFAULT NULL,
+                `random_options` json DEFAULT NULL,
+                `refining_level` int(1) UNSIGNED DEFAULT NULL,
                 `update_time` timestamp NOT NULL DEFAULT current_timestamp(),
                 PRIMARY KEY (`id`),
-                KEY `datetime` (`datetime`),
-                KEY `item_name` (`item_name`),
-                KEY `world-item_name` (`world`, `item_name`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='アイテム詳細テーブル' ROW_FORMAT=DYNAMIC;
+                UNIQUE KEY `item_name-log_date` (`item_name`, `log_date`, `world`, `map_name`, `price`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='アイテム取引テーブル' ROW_FORMAT=DYNAMIC AUTO_INCREMENT=20000001;
             '''
             cursor.execute(sql_create_tbl)
 
@@ -76,30 +74,28 @@ class MysqlPipeline(object):
                 self.logger.warning(ex)
 
     def process_item(self, item, spider):
-        if spider.name in ['item_detail']:
-            self.process_item_detail(item, spider)
-        elif spider.name in ['item_update']:
+        if spider.name in ["item_trade"]:
             self.process_item_detail(item, spider)
 
         return item
 
     def process_item_detail(self, item, spider):
         sql_insert = '''
-            INSERT INTO item_detail_tbl(
+            INSERT INTO item_trade_tbl(
                 id,
-                world,
-                `datetime`,
                 item_name,
-                cost,
-                unit_cost,
-                count,
+                log_date,
+                world,
+                map_name,
+                price,
+                unit_price,
+                item_count,
                 cards,
-                enchants,
-                options,
-                refining
+                random_options,
+                refining_level
             )
             VALUES(
-                %s,
+                NULL,
                 %s,
                 %s,
                 %s,
@@ -111,31 +107,26 @@ class MysqlPipeline(object):
                 %s,
                 %s
             )
-            ON DUPLICATE KEY UPDATE
-                cards=%s,
-                enchants=%s,
-                options=%s
             ;
         '''
 
         try:
             with self.connection.cursor() as cursor:
                 cursor.execute(sql_insert,(
-                    item['id'],
-                    item['world'],
-                    item['datetime'],
-                    item['item_name'],
-                    item['cost'],
-                    int(item['cost'] / item['count']),
-                    item['count'],
-                    json.dumps(item['cards'], ensure_ascii=False),
-                    json.dumps(item['enchants'], ensure_ascii=False),
-                    json.dumps(item['options'], ensure_ascii=False),
-                    item['refining'],
-                    json.dumps(item['cards'], ensure_ascii=False),
-                    json.dumps(item['enchants'], ensure_ascii=False),
-                    json.dumps(item['options'], ensure_ascii=False)
+                    item["item_name"],
+                    item["log_date"],
+                    item["world"],
+                    item["map_name"],
+                    item["price"],
+                    int(item["price"] / item["item_count"]),
+                    item["item_count"],
+                    json.dumps(item["cards"], ensure_ascii=False),
+                    json.dumps(item["random_options"], ensure_ascii=False),
+                    item["refining_level"]
                     ))
+
+        except MySQLdb.IntegrityError as ex:
+            pass
 
         except MySQLdb.Error as ex:
             #self.connection.rollback()
