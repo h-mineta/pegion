@@ -81,7 +81,7 @@ class MysqlPipeline(object):
 
     def process_item_detail(self, item, spider):
         sql_insert = '''
-            INSERT INTO item_trade_tbl(
+            INSERT IGNORE INTO item_trade_tbl(
                 id,
                 item_name,
                 log_date,
