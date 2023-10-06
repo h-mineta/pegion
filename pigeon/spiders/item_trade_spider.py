@@ -17,14 +17,17 @@ from scrapy.spiders import CrawlSpider
 from twisted.internet.error import DNSLookupError, TimeoutError
 
 
-class ItemTradeLogFilteredSearch(CrawlSpider):
+class ItemTradeSpider(CrawlSpider):
     name = 'item_trade'
 
     allowed_domains = [
         'rotool.gungho.jp'
     ]
 
-    def __init__(self, settings, *args, **kwargs):
+    item_id: int = None
+
+    def __init__(self, settings, item_id: int = None, *args, **kwargs):
+        super(ItemTradeSpider, self).__init__(*args, **kwargs)
         filterwarnings('ignore', category = MySQLdb.Warning)
 
         self.mysql_args = {
@@ -37,36 +40,47 @@ class ItemTradeLogFilteredSearch(CrawlSpider):
             'charset'    : 'utf8mb4'
         }
 
-        self.log_index = settings.get('ITEM_START_INDEX', 0)
-
-    def start_requests(self):
-        self.connection = MySQLdb.connect(**self.mysql_args)
-        self.connection.autocommit(False)
-
-        with self.connection.cursor() as cursor:
-            sql_select: str = '''
-                SELECT item_id FROM `item_data_tbl`
-                ORDER BY 1 ASC;
-            '''
-
-            cursor.execute(sql_select)
-
-            for row in cursor:
-                yield scrapy.Request(
-                    "https://rotool.gungho.jp/item_trade_log_filtered_search/?item_id={}".format(row[0]),
-                    meta = {
-                        "dont_redirect": True
-                    },
-                    errback=self.errback_httpbin,
-                    callback=self.parse_httpbin
-                )
-
-        self.connection.close()
-        self.connection = None
+        self.item_id = item_id
 
     @classmethod
-    def from_crawler(cls, crawler):
-        return cls(settings = crawler.settings)
+    def from_crawler(cls, crawler, item_id: int = None):
+        return cls(settings = crawler.settings, item_id = item_id)
+
+    def start_requests(self):
+        if self.item_id is None:
+            self.connection = MySQLdb.connect(**self.mysql_args)
+            self.connection.autocommit(False)
+
+            with self.connection.cursor() as cursor:
+                sql_select: str = '''
+                    SELECT item_id FROM `item_data_tbl`
+                    ORDER BY 1 ASC;
+                '''
+
+                cursor.execute(sql_select)
+
+                for row in cursor:
+                    yield scrapy.Request(
+                        "https://rotool.gungho.jp/item_trade_log_filtered_search/?item_id={}".format(row[0]),
+                        meta = {
+                            "dont_redirect": True
+                        },
+                        errback=self.errback_httpbin,
+                        callback=self.parse_httpbin
+                    )
+
+            self.connection.close()
+            self.connection = None
+
+        else:
+            yield scrapy.Request(
+                "https://rotool.gungho.jp/item_trade_log_filtered_search/?item_id={}".format(str(self.item_id)),
+                meta = {
+                    "dont_redirect": True
+                },
+                errback=self.errback_httpbin,
+                callback=self.parse_httpbin
+            )
 
     def parse_httpbin(self, response):
         matches = re.search(r"/item_trade_log_filtered_search/.*$", response.url)
@@ -94,7 +108,7 @@ class ItemTradeLogFilteredSearch(CrawlSpider):
             item["price"]          = int(original["price"])
             item["item_count"]     = int(original["item_count"])
             item["cards"]          = [original["card1"], original["card2"], original["card3"], original["card4"]]
-            item["random_options"] = [original["RandOption1"], original["RandOption3"], original["RandOption3"], original["RandOption4"], original["RandOption5"]]
+            item["random_options"] = [original["RandOption1"], original["RandOption2"], original["RandOption3"], original["RandOption4"], original["RandOption5"]]
             item["refining_level"] = int(original["refining_level"])
 
             yield item

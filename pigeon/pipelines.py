@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Copyright (c) 2018 h-mineta <h-mineta@0nyx.net>
+# Copyright (c) 2023 h-mineta <h-mineta@0nyx.net>
 # This software is released under the MIT License.
 #
 from warnings import filterwarnings
