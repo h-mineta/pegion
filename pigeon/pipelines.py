@@ -51,7 +51,8 @@ class MysqlPipeline(object):
                 `refining_level` int(1) UNSIGNED DEFAULT NULL,
                 `update_time` timestamp NOT NULL DEFAULT current_timestamp(),
                 PRIMARY KEY (`id`),
-                UNIQUE KEY `item_name-log_date` (`item_name`, `log_date`, `world`, `map_name`, `price`)
+                KEY `item_name` (`item_name`),
+                UNIQUE KEY `unique_trade` (`item_name`, `log_date`, `world`, `price`, `refining_level`, `cards`, `random_options`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='アイテム取引テーブル' ROW_FORMAT=DYNAMIC AUTO_INCREMENT=20000001;
             '''
             cursor.execute(sql_create_tbl)
