@@ -66,7 +66,8 @@ class ItemTradeSpider(CrawlSpider):
                             "dont_redirect": True
                         },
                         errback=self.errback_httpbin,
-                        callback=self.parse_httpbin
+                        callback=self.parse_httpbin,
+                        cb_kwargs={"item_id": int(row[0])}
                     )
 
             self.connection.close()
@@ -79,10 +80,11 @@ class ItemTradeSpider(CrawlSpider):
                     "dont_redirect": True
                 },
                 errback=self.errback_httpbin,
-                callback=self.parse_httpbin
+                callback=self.parse_httpbin,
+                cb_kwargs={"item_id": int(self.item_id)}
             )
 
-    def parse_httpbin(self, response):
+    def parse_httpbin(self, response, item_id: int = None):
         matches = re.search(r"/item_trade_log_filtered_search/.*$", response.url)
         if matches is None:
             return
@@ -101,6 +103,7 @@ class ItemTradeSpider(CrawlSpider):
 
         for original in data_json:
             item = ItemTrade()
+            item["item_id"]        = item_id
             item["item_name"]      = original["item_name"]
             item["log_date"]       = original["log_date"]
             item["world"]          = original["world"]

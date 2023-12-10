@@ -39,6 +39,7 @@ class MysqlPipeline(object):
             sql_create_tbl = '''
                 CREATE TABLE IF NOT EXISTS `item_trade_tbl` (
                 `id` bigint(1) UNSIGNED NOT NULL AUTO_INCREMENT,
+                `item_id` bigint(1) UNSIGNED DEFAULT NULL,
                 `item_name` varchar(255) NOT NULL,
                 `log_date` datetime NOT NULL,
                 `world` varchar(16) NOT NULL,
@@ -51,6 +52,7 @@ class MysqlPipeline(object):
                 `refining_level` int(1) UNSIGNED DEFAULT NULL,
                 `update_time` timestamp NOT NULL DEFAULT current_timestamp(),
                 PRIMARY KEY (`id`),
+                KEY `item_id` (`item_id`),
                 KEY `item_name` (`item_name`),
                 UNIQUE KEY `unique_trade` (`item_name`, `log_date`, `world`, `price`, `refining_level`, `cards`, `random_options`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='アイテム取引テーブル' ROW_FORMAT=DYNAMIC AUTO_INCREMENT=20000001;
@@ -84,6 +86,7 @@ class MysqlPipeline(object):
         sql_insert = '''
             INSERT IGNORE INTO item_trade_tbl(
                 id,
+                item_id,
                 item_name,
                 log_date,
                 world,
@@ -106,6 +109,7 @@ class MysqlPipeline(object):
                 %s,
                 %s,
                 %s,
+                %s,
                 %s
             )
             ;
@@ -114,6 +118,7 @@ class MysqlPipeline(object):
         try:
             with self.connection.cursor() as cursor:
                 cursor.execute(sql_insert,(
+                    item["item_id"],
                     item["item_name"],
                     item["log_date"],
                     item["world"],

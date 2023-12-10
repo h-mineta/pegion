@@ -8,6 +8,7 @@
 from scrapy import Item, Field
 
 class ItemTrade(Item):
+    item_id        = Field()
     item_name      = Field()
     log_date       = Field()
     world          = Field()
