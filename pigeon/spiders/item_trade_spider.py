@@ -55,7 +55,7 @@ class ItemTradeSpider(CrawlSpider):
                 sql_select: str = '''
                     SELECT item_id FROM `item_data_tbl`
                     WHERE NOT (description LIKE '%あらゆる取引%' AND description LIKE '%できません%')
-                    ORDER BY 1 ASC;
+                    ORDER BY 1 DESC;
                 '''
 
                 cursor.execute(sql_select)

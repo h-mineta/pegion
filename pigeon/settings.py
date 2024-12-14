@@ -15,7 +15,7 @@ SPIDER_MODULES = ['pigeon.spiders']
 NEWSPIDER_MODULE = 'pigeon.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-USER_AGENT = 'Pigeon(rodb.aws.0nyx.net)'
+USER_AGENT = 'Pigeon(rodb.aws.0nyx.net / email: m10i@0nyx.net)'
 
 DOWNLOAD_TIMEOUT = 5
 RETRY_ENABLED = False
