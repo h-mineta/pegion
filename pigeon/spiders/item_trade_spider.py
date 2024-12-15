@@ -7,10 +7,9 @@
 
 import json
 import re
-from warnings import filterwarnings
 
-import MySQLdb
 import scrapy
+from sqlalchemy import create_engine, text
 from pigeon.items import ItemTrade
 from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.spiders import CrawlSpider
@@ -28,17 +27,18 @@ class ItemTradeSpider(CrawlSpider):
 
     def __init__(self, settings, item_id: int = None, *args, **kwargs):
         super(ItemTradeSpider, self).__init__(*args, **kwargs)
-        filterwarnings('ignore', category = MySQLdb.Warning)
-
-        self.mysql_args = {
+        mysql_args = {
             'host'       : settings.get('MYSQL_HOST', 'localhost'),
             'port'       : settings.get('MYSQL_PORT', 3306),
             'user'       : settings.get('MYSQL_USER', 'pigeon'),
             'passwd'     : settings.get('MYSQL_PASSWORD', 'pigeonpw!'),
-            'db'         : settings.get('MYSQL_DATABASE', 'pigeon'),
+            'dbname'     : settings.get('MYSQL_DATABASE', 'pigeon'),
             'unix_socket': settings.get('MYSQL_UNIXSOCKET', '/var/lib/mysql/mysql.sock'),
             'charset'    : 'utf8mb4'
         }
+
+        self.sqlalchemy_url: str = "mysql+pymysql://{user:s}:{passwd:s}@{host:s}:{port:d}/{dbname:s}?charset={charset:s}"\
+            .format(**mysql_args)
 
         self.item_id = item_id
 
@@ -48,19 +48,18 @@ class ItemTradeSpider(CrawlSpider):
 
     def start_requests(self):
         if self.item_id is None:
-            self.connection = MySQLdb.connect(**self.mysql_args)
-            self.connection.autocommit(False)
+            engine = create_engine(self.sqlalchemy_url)
 
-            with self.connection.cursor() as cursor:
+            with engine.connect() as session:
                 sql_select: str = '''
                     SELECT item_id FROM `item_data_tbl`
                     WHERE NOT (description LIKE '%あらゆる取引%' AND description LIKE '%できません%')
                     ORDER BY 1 DESC;
                 '''
 
-                cursor.execute(sql_select)
+                result = session.execute(text(sql_select))
 
-                for row in cursor:
+                for row in result:
                     yield scrapy.Request(
                         "https://rotool.gungho.jp/item_trade_log_filtered_search/?item_id={}".format(row[0]),
                         meta = {
@@ -70,9 +69,7 @@ class ItemTradeSpider(CrawlSpider):
                         callback=self.parse_httpbin,
                         cb_kwargs={"item_id": int(row[0])}
                     )
-
-            self.connection.close()
-            self.connection = None
+                session.commit()
 
         else:
             yield scrapy.Request(

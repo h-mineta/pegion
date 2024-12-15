@@ -4,23 +4,24 @@
 # Copyright (c) 2023 h-mineta <h-mineta@0nyx.net>
 # This software is released under the MIT License.
 #
-from warnings import filterwarnings
 import json
-import MySQLdb
+
+from sqlalchemy import create_engine, text
 
 class MysqlPipeline(object):
     def __init__(self, settings, *args, **kwargs):
-        filterwarnings('ignore', category = MySQLdb.Warning)
-
-        self.mysql_args = {
+        mysql_args = {
             'host'       : settings.get('MYSQL_HOST', 'localhost'),
             'port'       : settings.get('MYSQL_PORT', 3306),
             'user'       : settings.get('MYSQL_USER', 'pigeon'),
             'passwd'     : settings.get('MYSQL_PASSWORD', 'pigeonpw!'),
-            'db'         : settings.get('MYSQL_DATABASE', 'pigeon'),
+            'dbname'     : settings.get('MYSQL_DATABASE', 'pigeon'),
             'unix_socket': settings.get('MYSQL_UNIXSOCKET', '/var/lib/mysql/mysql.sock'),
             'charset'    : 'utf8mb4'
         }
+
+        self.sqlalchemy_url: str = "mysql+pymysql://{user:s}:{passwd:s}@{host:s}:{port:d}/{dbname:s}?charset={charset:s}"\
+            .format(**mysql_args)
 
         self.initialize()
 
@@ -31,11 +32,8 @@ class MysqlPipeline(object):
         )
 
     def initialize(self):
-        self.connection = MySQLdb.connect(**self.mysql_args)
-        self.connection.autocommit(False)
-
-        with self.connection.cursor() as cursor:
-
+        engine = create_engine(self.sqlalchemy_url)
+        with engine.connect() as session:
             sql_create_tbl = '''
                 CREATE TABLE IF NOT EXISTS `item_trade_tbl` (
                 `id` bigint(1) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -57,23 +55,19 @@ class MysqlPipeline(object):
                 UNIQUE KEY `unique_trade` (`item_name`, `log_date`, `world`, `price`, `refining_level`, `cards`, `random_options`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='アイテム取引テーブル' ROW_FORMAT=DYNAMIC AUTO_INCREMENT=20000001;
             '''
-            cursor.execute(sql_create_tbl)
-
-            self.connection.commit()
-
-        self.connection.close()
-        self.connection = None
+            session.execute(text(sql_create_tbl))
+            session.commit()
 
     def open_spider(self, spider):
-        self.connection = MySQLdb.connect(**self.mysql_args)
-        self.connection.autocommit(True)
+        engine = create_engine(self.sqlalchemy_url)
+        self.session = engine.connect()
 
     def close_spider(self, spider):
-        if self.connection:
+        if self.session:
             try:
                 #self.connection.commit()
-                self.connection.close()
-            except MySQLdb.Error as ex:
+                self.session.close()
+            except Exception as ex:
                 self.logger.warning(ex)
 
     def process_item(self, item, spider):
@@ -100,40 +94,39 @@ class MysqlPipeline(object):
             )
             VALUES(
                 NULL,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s
+                :item_id,
+                :item_name,
+                :log_date,
+                :world,
+                :map_name,
+                :price,
+                :unit_price,
+                :item_count,
+                :cards,
+                :random_options,
+                :refining_level
             )
             ;
         '''
 
         try:
-            with self.connection.cursor() as cursor:
-                cursor.execute(sql_insert,(
-                    item["item_id"],
-                    item["item_name"],
-                    item["log_date"],
-                    item["world"],
-                    item["map_name"],
-                    item["price"],
-                    int(item["price"] / item["item_count"]),
-                    item["item_count"],
-                    json.dumps(item["cards"], ensure_ascii=False),
-                    json.dumps(item["random_options"], ensure_ascii=False),
-                    item["refining_level"]
-                    ))
+            self.session.execute(
+                text(sql_insert),
+                {
+                    "item_id"        : item["item_id"],
+                    "item_name"      : item["item_name"],
+                    "log_date"       : item["log_date"],
+                    "world"          : item["world"],
+                    "map_name"       : item["map_name"],
+                    "price"          : item["price"],
+                    "unit_price"     : int(item["price"] / item["item_count"]),
+                    "item_count"     : item["item_count"],
+                    "cards"          : json.dumps(item["cards"], ensure_ascii=False),
+                    "random_options" : json.dumps(item["random_options"], ensure_ascii=False),
+                    "refining_level" : item["refining_level"]
+                    }
+                )
+            self.session.commit()
 
-        except MySQLdb.IntegrityError as ex:
-            pass
-
-        except MySQLdb.Error as ex:
-            #self.connection.rollback()
+        except Exception as ex:
             self.logger.error(ex)

@@ -1,5 +1,5 @@
+PyMySQL
+regex
 scrapy
 scrapyd
 scrapyd-client
-mysqlclient
-regex
